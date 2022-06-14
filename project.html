@@ -1,0 +1,431 @@
+<html>
+<head>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+	<style>
+		* {
+			font-family: Arial;
+		}
+		body {
+			margin: 0px;
+		}
+
+		.header {
+		  background-color: #152436;
+		  min-height: 100px;
+		  display: flex;
+		  flex-direction: row;
+		  align-items: center;
+		  margin-top: 0px;
+		}
+
+		.header img {
+			max-width: 120px;
+			margin-left: 24px;
+		}
+
+		.header h1 {
+			margin: 24px;
+			font-size: 24px;
+			color: white;
+			
+		}
+
+		.main-content {
+			margin: 24px;
+			display: flex;
+			flex-direction: row;
+		}
+
+		.well {    
+			padding: 18px 12px 80px;
+			margin: 12px;
+			background-color: #ddd;
+			border-radius: 3px;
+			min-width: 400px;
+			width: 45%;
+			min-height: 200px;
+			position: relative;
+		}
+
+		.bottom-buttons {
+			position: absolute;
+			bottom: 18px;
+		}
+
+		button {
+			border-radius: 3px;
+			background-color: #152436;
+			color: white;
+			padding: 12px 24px;
+			border: none;
+			cursor: pointer;
+			font-weight: bold;
+		}
+		button:hover {
+			background-color: grey;
+		}
+		.red {
+			background-color: #c5485d;
+		}
+		.red:hover {
+			background-color: #943343;
+		}
+		.green {
+			background-color: #47be6d;
+		}
+		.green:hover {
+			background-color: #3c995a;
+		}
+		h2 {
+			margin: 0px;
+		}
+		table {
+			width: 100%;
+			background-color: white;
+			margin-top: 12px;
+			padding: 3px;
+		}
+		tr {
+			text-align: left;
+			cursor: pointer;
+		}
+		tr:hover {
+			background-color: #eee;
+		}
+		td {
+			border: none;
+			padding: 3px;
+		}
+		.container-error{
+			width: 60%;
+			margin: 0 auto;
+		}
+		#error-loads{
+			font-size: 2rem;
+			color: red;
+			display: none;
+		}
+	</style>
+
+<script>
+
+	const all_loads = {
+		1: {
+			id: 1,
+			from: 'Fresno',
+			to: 'Sacramento',
+			pickup_date: '06/03/2023',
+			dropoff_date: '06/03/2023',
+		},
+		2: {
+			id: 2,
+			from: 'Sacramento',
+			to: 'Oakland',
+			pickup_date: '06/04/2023',
+			dropoff_date: '06/05/2023',
+		},
+		3: {
+			id: 3,
+			from: 'Tahoe',
+			to: 'Sunnyvale',
+			pickup_date: '06/04/2023',
+			dropoff_date: '06/05/2023',
+		},
+		4: {
+			id: 4,
+			from: 'Tahoe',
+			to: 'Fresno',
+			pickup_date: '06/04/2023',
+			dropoff_date: '06/05/2023',
+		},
+		5: {
+			id: 5,
+			from: 'Sunnyvale',
+			to: 'Santa Barbara',
+			pickup_date: '06/06/2023',
+			dropoff_date: '06/08/2023',
+		},
+		6: {
+			id: 6,
+			from: 'Santa Barbara',
+			to: 'San Diego',
+			pickup_date: '06/09/2023',
+			dropoff_date: '06/10/2023',
+		},
+		7: {
+			id: 7,
+			from: 'San Diego',
+			to: 'Portland',
+			pickup_date: '06/11/2023',
+			dropoff_date: '06/13/2023',
+		},
+		8: {
+			id: 8,
+			from: 'Sacramento',
+			to: 'Palo Alto',
+			pickup_date: '06/07/2023',
+			dropoff_date: '06/07/2023',
+		},
+		9: {
+			id: 9,
+			from: 'Sacramento',
+			to: 'Sunnyvale',
+			pickup_date: '06/08/2023',
+			dropoff_date: '06/09/2023',
+		},
+		10: {
+			id: 10,
+			from: 'Sunnyvale',
+			to: 'San Diego',
+			pickup_date: '06/11/2023',
+			dropoff_date: '06/12/2023',
+		}
+	}	
+
+
+
+	/*
+	 	Object to get the selected loads from clickOnLoad
+	*/
+	let route_loads = {
+	}
+
+	/**
+	 * Sends a post request to the server
+	 * TODO: Package the final route into a JSON object and send it to this server endpoint via POST request.
+	 * https://take-home-backend.exofreight.com/save-route
+	 * @return {void}
+	*/
+	const saveRoute = () => {
+		console.log('Saving route...')
+		sendHttpRequest('POST', 'https://take-home-backend.exofreight.com/save-route', route_loads)
+		  .then(responseData => {
+		    if(responseData.status !== 200 || !responseData.ok){
+		  		throw new Error('Something went wrong with POST request')
+		    }
+		  })
+		  .catch(err => {
+		    console.log(err);
+		  });
+	}
+
+	/**
+	 * Return the current date and time
+	 * @example '2022-6-13 20:8:53'
+	 * @return {string}
+	*/
+	function currentTime(){
+
+		let today = new Date();
+		let date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+		let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+		let dateTime = date+' '+time;
+
+		return dateTime
+	}
+	
+	/**
+	 * creates an http request and return a promise for that request 
+	 * @param {string} method - GET, POST, PUT, UPDATE
+	 * @param {string} url - http://example.com/api/dog
+	 * @param {Object} data 
+	 * @return {<promise>} 
+	 * 
+	*/
+	async function sendHttpRequest(method = 'POST', url = '', data = {}){
+		const postData = Object.assign({}, data, {user: 'freddy'}, {timestamp: currentTime()})
+
+		try {
+			const response = await fetch(url,  {
+			  method: method, // or 'PUT'
+			  mode: 'cors',
+			  cache: 'default',
+			  credentials: 'same-origin',
+			  body: JSON.stringify(postData),
+			  headers: {
+		      'Accept': 'application/json',
+		      'Content-Type': 'application/json',
+			  },
+			});
+			return response
+
+		} catch(e){
+			console.log('error sending the Http Request', e)
+		}
+	};
+
+	/**
+	 * Resets Your Route and available Loads to how they were first
+	 * TODO: When a user clicks on this button, the page should reset.
+	 * @return {void}
+	*/
+	function reset() {
+		console.log('Resetting route and available loads...')
+		$("#your-route").empty()
+		renderAvailableloads(all_loads)
+	}
+
+	/**
+	 * onClick it select the Available Load the user clicked to Your Route
+	 * TODO: Clicking on a load should add that load to the route and update the list of
+	 * available loads.
+	 * @param {number | string} load_id - 1 | "1"
+	 * @return {void}
+	*/
+	function clickOnLoad(load_id) {
+
+		console.log("Received a click on load with ID " + JSON.stringify(all_loads[load_id]) )
+		const size = Object.keys(route_loads).length + 1
+ 
+		route_loads = {
+			...route_loads,
+			[size] : {
+				id: size,
+				from: all_loads[load_id]['from'],
+				to: all_loads[load_id]['to'],
+				pickup_date: all_loads[load_id]['pickup_date'],
+				dropoff_date: all_loads[load_id]['dropoff_date']
+			}
+		}
+		
+		$("#your-route").append(builtRoute(route_loads, size))
+
+		newRouteData(route_loads,size)
+
+		if(eligibleLoads()){
+			$("#error-loads").css("display", "block")
+		} 
+	}
+
+	/**
+	 * Callback function for the .filter method in newRouteData()
+	 * @param {object} loadData - {from: "fresno", to: "sunnyvale"}
+	 * @param {string | number} size - 1 | "1"
+	 * @return {boolean} 
+	 * 
+	*/
+	const filterLoads = (loadData,size) => {
+
+		const displayOnlyThis = route_loads[size]['to']
+		const routeLoadTime = new Date(route_loads[size]['dropoff_date']).getTime()
+		const loadTime = new Date(loadData['pickup_date']).getTime()
+
+		if((loadData.from === displayOnlyThis) && (loadTime > routeLoadTime)){
+			return true
+		} 
+		return false
+	}
+
+	/**
+	 * Calls the renderAvailableloads method to update the Available Loads
+	 * @param {Object} route_loads - {from: "fresno", to: "sunnyvale"}
+	 * @param {string | number} size - 1 | "1"
+	 * @return {void} 
+	 * 
+	*/
+	function newRouteData(route_loads,size){
+
+		if(route_loads[size]){
+			let newLoads = Object.values(all_loads).filter( d => filterLoads(d, size))
+
+			renderAvailableloads(newLoads)
+		}
+	}
+
+	/**
+	 * check if the Available Loads are >  0
+	 * @return {boolean} 
+	 * 
+	*/
+	function eligibleLoads(){
+
+		const loads = $("#available-loads tr").length
+		const eligible = (loads === 0 ) ? true : false
+
+		return eligible
+	}
+
+	/**
+	 * return HTML row to add to Your Route 
+	 * @param {Object} load - {from: "fresno", to: "sunnyvale"}
+	 * @param {number | string} id - 1 | "1"
+	 * @return {String} 
+	 * 
+	*/
+	function builtRoute(load,id){
+		return " <tr> <td>" + load[id]['from'] + " to " + load[id]['to'] + '</td><td>' + load[id]['pickup_date'] + '</td><td>' + load[id]['dropoff_date'] + '</td>' + '</td><td>' + load[id]['from'] + '</td><td>' + load[id]['dropoff_date'].slice(0,5) + '</td>' +  '</td><td>' + load[id]['to'] + '</td><td>' + load[id]['dropoff_date'].slice(0,5) + '</td>' + '</tr>'
+	}
+
+	/**
+	 * return HTML row to add to Available Loads
+	 * @param {Object} load - {from: "fresno", to: "sunnyvale"}
+	 * @return {String} 
+	 * 
+	*/
+	function buildRow(load) {
+		return "<tr onclick='clickOnLoad(" + load["id"] + ")'><td>" + load['from'] + " to " + load['to'] + '</td><td>' + load['pickup_date'] + '</td><td>' + load['dropoff_date'] + '</td></tr>'
+	}
+
+
+	/**
+	 *  Takes in an object of load dicts and renders them in the 'Available loads' section
+	 *  on the left side of the page.
+	 * @param {Object} loads - {from: "fresno", to: "sunnyvale"}
+	 * @param {number | string} id - 1 | "1"
+	 * @return {String} 
+	 * 
+	*/
+	function renderAvailableloads(loads) {
+		$("#available-loads").empty()
+		for (const i in loads) {
+			let load = loads[i]
+			let loadHTML = buildRow(load)
+			$("#available-loads").append(loadHTML)
+		}
+	}
+
+
+	$(document).ready(function(){ 
+		renderAvailableloads(all_loads)
+	})
+
+
+
+</script>
+
+</head>
+
+<body>
+		<div class="header">
+			<img src="https://storage.googleapis.com/exofreight-marketing/logo.jpg" class="App-logo" alt="logo" />
+			<h1>Route Builder</h1>
+		</div>
+		<div class="main-content">
+
+			<div class="well">
+				<h2>Available Loads</h2>
+				<table>
+					<tr><th>Route</th><th>Pickup</th><th>Dropoff</th></tr>
+					<tbody id="available-loads"></tbody>
+				</table>
+			</div>
+			<div class="well">
+				<h2>Your Route</h2>
+				<table id="current-route">
+					<tr><th>Route</th><th>Pickup</th><th>Dropoff</th><th>Start</th><th>Date</th><th>End</th><th>Date</th></tr>
+					<tbody id="your-route"></tbody>
+				</table>
+				<div class="bottom-buttons">
+					<button class="red" onclick="reset()">Reset</button>
+					<button class="green" onclick="saveRoute()">Save Route</button>
+				</div>
+			</div>
+			
+		</div>
+		<div class="container-error">
+			<span id="error-loads">There are no more eligible loads to add to the route</span>
+		</div>
+</body>
+
+</html>
